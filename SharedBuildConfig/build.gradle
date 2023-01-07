@@ -1,0 +1,36 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+plugins {
+    id 'com.android.application' version '7.3.1' apply false
+    id 'com.android.library' version '7.3.1' apply false
+    id 'org.jetbrains.kotlin.android' version '1.7.20' apply false
+    id "de.undercouch.download" version "5.3.0"
+    id 'com.cherryperry.gradle-file-encrypt' version '2.0.3'
+}
+
+gradleFileEncrypt {
+    plainFiles.from('apikey.properties')
+    passwordProvider = { return 'encrypt'.toCharArray() }
+}
+
+task downloadFile {
+    print 'downloading api keys'
+    doFirst {
+        download.run {
+            src 'http://localhost:3000'
+            dest new File(rootDir, 'apikey.properties.encrypted')
+            overwrite true
+        }
+    }
+}
+
+task decrypyApiKey {
+    dependsOn downloadFile
+    doLast {
+        exec {
+            workingDir rootDir
+            executable './gradlew'
+            args 'decryptFiles'
+        }
+    }
+}
+
